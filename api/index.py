@@ -24,9 +24,9 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 @app.route("/api/shotchart_data/<player_name>/<season_id>", methods=['GET'])
-def hotchart_data(player_name, season_id):
+def get_shotchart_data(player_name, season_id):
     nba_players =  players.get_players()
-    player_dict = [player for player in nba_players if player['full_name'].lower() == player_name][0]
+    player_dict = [player for player in nba_players if player['full_name'] == player_name][0]
 
     career = playercareerstats.PlayerCareerStats(player_id=player_dict['id'])
     #data frame
@@ -85,16 +85,57 @@ def draw_court(ax=None, color="blue", lw=1, outer_lines=False):
     for element in court_elements:
         ax.add_patch(element)
 
+def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5), line_color=("blue"), 
+                court_color="white", court_lw=2, outer_lines=False, flip_court=False, gridsize=None,
+                ax=None, despine=False ):
+    if ax is None:
+        ax = plt.gca()
+    
+    if not flip_court:
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+    else:
+        ax.set_xlim(xlim[::-1])
+        ax.set_ylim(ylim[::-1])
+
+    ax.tick_params(labelbottom="off", labelleft="off")
+    ax.set_title(title, fontsize=18)
+
+    draw_court(ax, color=line_color, lw=court_lw, outer_lines=outer_lines)
+
+    x_missed = data[data['EVENT_TYPE'] == 'Missed Shot']['LOC_X']
+    y_missed = data[data['EVENT_TYPE'] == 'Missed Shot']['LOC_Y']
+   
+    x_made = data[data['EVENT_TYPE'] == 'Made Shot']['LOC_X']
+    y_made = data[data['EVENT_TYPE'] == 'Made Shot']['LOC_Y']
+
+
+    ax.scatter(x_missed, y_missed, c='r', marker='x', s=300, linewidths=3)
+    ax.scatter(x_made, y_made, facecolors='none', edgecolors='g', marker='o', s=100, linewidth=3)
+
+
+    #set spines to match rest of court lines 
+
+    for spine in x.spines:
+        ax.spines[spine].set_lw(court_lw)
+        ax.spines[spine].set_color(line_color)
+
+    if despine:
+        ax.spines["top"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+
+    return ax
+
+
 
 if __name__ == "__main__":
    
-    xlim= (-250, 250)
-    ylim= (422.5, -47.5)
+    player_shotchart_df = get_shotchart_data("LeBron James", "2019-20")
 
-    ax = plt.gca()
-    ax.set_xlim(xlim[::-1])
-    ax.set_ylim(ylim[::-1])
+    shot_chart(player_shotchart_df, title="Poop")
 
-    draw_court(ax)
-    
+    plt.rcParams['figure.figsize'] = (12,11)
+
     plt.show()
