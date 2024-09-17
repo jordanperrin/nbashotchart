@@ -116,7 +116,7 @@ def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5),
 
     #set spines to match rest of court lines 
 
-    for spine in x.spines:
+    for spine in ax.spines:
         ax.spines[spine].set_lw(court_lw)
         ax.spines[spine].set_color(line_color)
 
@@ -132,7 +132,9 @@ def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5),
 
 if __name__ == "__main__":
    
-    player_shotchart_df = get_shotchart_data("LeBron James", "2019-20")
+    player_shotchart_df, league_avg = get_shotchart_data("LeBron James", "2019-20")
+
+    print(player_shotchart_df)
 
     shot_chart(player_shotchart_df, title="Poop")
 
