@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
+import io
 import numpy as np
 import pandas as pd
 from nba_api.stats.endpoints import playercareerstats
@@ -23,10 +24,9 @@ app = Flask(__name__)
 def hello_world():
     return "<p>Hello, World!</p>"
 
-@app.route("/api/shotchart_data/<player_name>/<season_id>", methods=['GET'])
 def get_shotchart_data(player_name, season_id):
     nba_players =  players.get_players()
-    player_dict = [player for player in nba_players if player['full_name'] == player_name][0]
+    player_dict = [player for player in nba_players if player['full_name'].lower() == player_name.lower()][0]
 
     career = playercareerstats.PlayerCareerStats(player_id=player_dict['id'])
     #data frame
@@ -35,6 +35,10 @@ def get_shotchart_data(player_name, season_id):
     #following the nba api for datashotchart endpoint we need the team id and the player id
     #get the team id for that season
     team_id = career_df[career_df['SEASON_ID'] == season_id]['TEAM_ID']
+
+    print(team_id)
+
+   
 
     shotchartlist = shotchartdetail.ShotChartDetail(team_id=int(team_id), 
                                                     player_id = int(player_dict['id']),
@@ -110,17 +114,19 @@ def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5),
     y_made = data[data['EVENT_TYPE'] == 'Made Shot']['LOC_Y']
 
 
-    ax.scatter(x_missed, y_missed, c='r', marker='x', s=300, linewidths=3)
-    ax.scatter(x_made, y_made, facecolors='none', edgecolors='g', marker='o', s=100, linewidth=3)
+    ax.scatter(x_missed, y_missed, c='r', marker='x', s=100, linewidths=1)
+    ax.scatter(x_made, y_made, facecolors='none', edgecolors='g', marker='o', s=100, linewidth=2)
 
 
     #set spines to match rest of court lines 
 
+    #makes the line edges of chart wdith and color the same as all the other lines
     for spine in ax.spines:
         ax.spines[spine].set_lw(court_lw)
         ax.spines[spine].set_color(line_color)
 
-    if despine:
+    #if despine is true then creates the outer lines invisible
+    if despine: 
         ax.spines["top"].set_visible(False)
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
@@ -128,16 +134,36 @@ def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5),
 
     return ax
 
-
-
-if __name__ == "__main__":
-   
-    player_shotchart_df, league_avg = get_shotchart_data("LeBron James", "2019-20")
-
-    print(player_shotchart_df)
+@app.route("/api/shotchart/<player_name>/<season_id>", methods=['GET'])
+def get_jpeg(player_name, season_id):
+    player_shotchart_df, league_avg = get_shotchart_data(player_name, season_id)
 
     shot_chart(player_shotchart_df, title="Poop")
 
     plt.rcParams['figure.figsize'] = (12,11)
 
-    plt.show()
+    img_buffer = io.BytesIO()
+
+    # Save the plot to the buffer
+    plt.savefig(img_buffer, format='jpeg')
+    
+    # Close the plot to free memory
+    plt.close()
+    
+    # Seek to the beginning of the buffer so the file can be read
+    img_buffer.seek(0)
+    
+    # Send the image as a response with MIME type 'image/jpeg'
+    return send_file(img_buffer, mimetype='image/jpeg', as_attachment=False, download_name=f"{player_name}_shotchart.jpeg")
+
+
+
+# if __name__ == "__main__":
+   
+#     player_shotchart_df, league_avg = get_shotchart_data("LeBron James", "2019-20")
+
+#     shot_chart(player_shotchart_df, title="Poop")
+
+#     plt.rcParams['figure.figsize'] = (12,11)
+
+#     plt.show()
