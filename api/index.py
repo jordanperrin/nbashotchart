@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 import io
+import json
 import numpy as np
 import pandas as pd
 from nba_api.stats.endpoints import playercareerstats
@@ -22,6 +23,14 @@ app = Flask(__name__)
 
 @app.route("/api/python")
 def hello_world():
+    # players_list =  players.get_players()
+
+    # active_players = [player for player in players_list if player["is_active"] ]
+    # file_path = './public/players_data.json'
+
+    # with open(file_path, 'w') as json_file:
+    #     json.dump(active_players, json_file, indent=4)
+    
     return "<p>Hello, World!</p>"
 
 def get_shotchart_data(player_name, season_id):
