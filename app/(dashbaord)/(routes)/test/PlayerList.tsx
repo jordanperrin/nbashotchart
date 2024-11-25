@@ -1,9 +1,10 @@
 "use client"
 import playersNames from '../../../../public/players_data.json';
+import { useRouter } from 'next/router';
 
 
-const PlayerList = async ({query} : {query: string}) => {
-
+const PlayerList = ({query} : {query: string}) => {
+  const router = useRouter();
   
 
   const fullNames = playersNames.map((player) => player.full_name);
@@ -14,6 +15,7 @@ const PlayerList = async ({query} : {query: string}) => {
 
   const handleClick = (player : string) =>{
     console.log(`Clicked on player: ${player}`);
+    router.push(`/api/shotchart/${encodeURIComponent(player)}/${encodeURIComponent('2024-25')}`);
   };
 
   return (
