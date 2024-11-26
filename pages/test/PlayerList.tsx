@@ -1,5 +1,5 @@
 "use client"
-import playersNames from '../../../../public/players_data.json';
+import playersNames from '../../public/players_data.json';
 import { useRouter } from 'next/router';
 
 
