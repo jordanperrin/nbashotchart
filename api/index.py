@@ -10,6 +10,8 @@ from nba_api.stats.endpoints import shotchartdetail
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 from matplotlib import cm
 from matplotlib.patches import Circle, Rectangle, Arc, ConnectionPatch
 from matplotlib.patches import Polygon
@@ -20,6 +22,7 @@ from matplotlib.patches import PathPatch
 
 
 app = Flask(__name__)
+matplotlib.use('agg')
 
 @app.route("/api/python")
 def hello_world():
@@ -145,9 +148,10 @@ def shot_chart(data, title="",  color='b', xlim=(-250,250), ylim=(422.5, -47.5),
 
 @app.route("/api/shotchart/<player_name>/<season_id>", methods=['GET'])
 def get_jpeg(player_name, season_id):
+    
     player_shotchart_df, league_avg = get_shotchart_data(player_name, season_id)
 
-    shot_chart(player_shotchart_df, title="Poop")
+    shot_chart(player_shotchart_df, title=player_name)
 
     plt.rcParams['figure.figsize'] = (12,11)
 
